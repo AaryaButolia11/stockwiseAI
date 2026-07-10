@@ -1,0 +1,42 @@
+# Web framework
+flask==3.0.3
+gunicorn==22.0.0
+werkzeug==3.0.3
+python-dotenv==1.0.1
+
+# Data science / ML - Python 3.13 compatible stack
+numpy>=2.1.0
+pandas>=2.2.3
+scikit-learn>=1.6.0
+joblib==1.4.2
+matplotlib>=3.9.2
+
+# Market data and HTTP
+yfinance>=0.2.48
+requests==2.32.3
+curl_cffi>=0.7.0
+pytz==2024.1
+
+# Database
+psycopg2-binary>=2.9.10
+
+# Messaging / news
+twilio==9.2.3
+newsapi-python==0.2.7
+
+# Groq LLM
+groq
+
+# LangChain
+langchain-core
+langchain-groq
+langchain-community
+langchain-text-splitters
+
+# Retrieval / scraping
+faiss-cpu
+sentence-transformers
+beautifulsoup4
+
+# Streamlit news-research tool
+streamlit

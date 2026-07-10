@@ -1,0 +1,42 @@
+# fly.toml — StockWise deployment config
+app = "stockwise-app"          # change to your app name
+primary_region = "bom"         # Mumbai — closest to India
+
+[build]
+
+[env]
+  PORT              = "8080"
+  MODEL_CACHE_DIR   = "/data/model_cache"
+  MODEL_EXPIRY_DAYS = "7"
+  AUTO_SELL_INTERVAL= "300"
+
+[http_service]
+  internal_port        = 8080
+  force_https          = true
+  auto_stop_machines   = true
+  auto_start_machines  = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type       = "requests"
+    hard_limit = 25
+    soft_limit = 20
+
+[[vm]]
+  memory = "1gb"
+  cpus   = 1
+
+# Persistent volume for model_cache (so models survive redeploys)
+[[mounts]]
+  source      = "stockwise_data"
+  destination = "/data"
+
+[checks]
+  [checks.health]
+    grace_period = "10s"
+    interval     = "30s"
+    method       = "GET"
+    path         = "/health"
+    port         = 8080
+    timeout      = "5s"
+    type         = "http"

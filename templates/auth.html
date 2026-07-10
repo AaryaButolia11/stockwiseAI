@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      StockWise — {{ 'Sign In' if page == 'login' else 'Create Account' }}
+    </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --ink: #0d0f14;
+        --ink-soft: #3a3d47;
+        --ink-muted: #7a7e8c;
+        --surface: #f7f5f0;
+        --surface-2: #edeae2;
+        --gold: #b8963e;
+        --gold-light: #d4af60;
+        --gold-pale: #f5ead4;
+        --green: #2d6a4f;
+        --green-light: #52b788;
+        --red: #9b2335;
+        --red-light: #e63950;
+        --white: #fdfcf9;
+        --line: rgba(0, 0, 0, 0.08);
+        --navy: #0a1128;
+        --navy-2: #121b38;
+        --navy-line: rgba(255, 255, 255, 0.09);
+        --signal: #3e7bfa;
+        --font-d: "Cormorant Garamond", Georgia, serif;
+        --font-b: "DM Sans", sans-serif;
+        --font-m: "DM Mono", monospace;
+      }
+      html {
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+      }
+      body {
+        font-family: var(--font-b);
+        background: var(--surface);
+        color: var(--ink);
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+        align-items: stretch;
+      }
+      @media (max-width: 880px) {
+        body {
+          grid-template-columns: 1fr;
+        }
+        .hero-panel {
+          display: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.001ms !important;
+          transition-duration: 0.001ms !important;
+        }
+      }
+
+      /* ── Hero panel (left) ── */
+      .hero-panel {
+        position: relative;
+        background: linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+        color: var(--white);
+        padding: 3.5rem 3.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+      }
+      .hero-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(
+          rgba(255, 255, 255, 0.06) 1px,
+          transparent 1px
+        );
+        background-size: 22px 22px;
+        pointer-events: none;
+      }
+      .hero-top .hero-word {
+        font-family: var(--font-d);
+        font-size: 1.6rem;
+        font-weight: 600;
+      }
+      .hero-top .hero-word em {
+        font-style: italic;
+        color: var(--gold-light);
+      }
+      .hero-headline {
+        position: relative;
+        z-index: 1;
+        font-family: var(--font-d);
+        font-size: clamp(2rem, 3.4vw, 2.9rem);
+        font-weight: 400;
+        line-height: 1.18;
+        max-width: 480px;
+        margin: 2.4rem 0 1.1rem;
+      }
+      .hero-headline em {
+        font-style: italic;
+        color: var(--gold-light);
+      }
+      .hero-sub {
+        position: relative;
+        z-index: 1;
+        font-size: 0.92rem;
+        color: rgba(255, 255, 255, 0.55);
+        max-width: 420px;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+      }
+      .hero-chart {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 480px;
+      }
+      .hero-feats {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+        margin-top: 2.2rem;
+        font-size: 0.85rem;
+      }
+      .hero-feats .feat {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        color: rgba(255, 255, 255, 0.75);
+      }
+      .hero-feats .feat-dot {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: rgba(184, 150, 62, 0.15);
+        border: 1px solid rgba(184, 150, 62, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-m);
+        font-size: 0.65rem;
+        color: var(--gold-light);
+        flex-shrink: 0;
+      }
+      .hero-tickers {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        gap: 1.6rem;
+        flex-wrap: wrap;
+        font-family: var(--font-m);
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.4);
+        padding-top: 1.6rem;
+        border-top: 1px solid var(--navy-line);
+        margin-top: 2rem;
+      }
+      .hero-tickers b {
+        color: rgba(255, 255, 255, 0.75);
+        font-weight: 400;
+      }
+      .hero-tickers .up {
+        color: var(--green-light);
+      }
+      .hero-tickers .down {
+        color: var(--red-light);
+      }
+
+      /* Right column: keep the auth card centered */
+      .auth-col {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        position: relative;
+      }
+
+      /* Background pattern (right column only) */
+      .auth-col::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(
+          var(--surface-2) 1px,
+          transparent 1px
+        );
+        background-size: 24px 24px;
+        pointer-events: none;
+        opacity: 0.6;
+        z-index: 0;
+      }
+
+      .wrap {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 420px;
+      }
+
+      /* Logo */
+      .logo {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .logo .wordmark {
+        font-family: var(--font-d);
+        font-size: 2.2rem;
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .logo .wordmark em {
+        font-style: italic;
+        color: var(--gold);
+      }
+      .logo .sub {
+        font-size: 0.72rem;
+        font-weight: 300;
+        color: var(--ink-muted);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-top: 0.2rem;
+      }
+
+      /* Card */
+      .card {
+        background: var(--white);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 2.5rem 2rem;
+        box-shadow:
+          0 16px 48px rgba(13, 15, 20, 0.1),
+          0 2px 8px rgba(13, 15, 20, 0.04);
+      }
+
+      .card-title {
+        font-family: var(--font-d);
+        font-size: 1.7rem;
+        font-weight: 400;
+        font-style: italic;
+        color: var(--ink);
+        margin-bottom: 0.3rem;
+      }
+      .card-sub {
+        font-size: 0.82rem;
+        color: var(--ink-muted);
+        margin-bottom: 1.8rem;
+      }
+
+      /* Gold rule */
+      .rule {
+        width: 32px;
+        height: 2px;
+        background: var(--gold);
+        margin-bottom: 1.5rem;
+      }
+
+      /* Fields */
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        margin-bottom: 1rem;
+      }
+      .field label {
+        font-size: 0.68rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink-muted);
+      }
+      .field input {
+        padding: 0.8rem 1rem;
+        font-family: var(--font-b);
+        font-size: 0.9rem;
+        color: var(--ink);
+        background: var(--surface);
+        border: 1px solid var(--surface-2);
+        border-radius: 4px;
+        outline: none;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+        width: 100%;
+      }
+      .field input:focus {
+        border-color: var(--gold);
+        box-shadow: 0 0 0 3px rgba(184, 150, 62, 0.12);
+      }
+      .field input::placeholder {
+        color: var(--ink-muted);
+        opacity: 0.5;
+      }
+
+      /* Two column row */
+      .row-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+      }
+
+      /* Submit button */
+      .btn-submit {
+        width: 100%;
+        padding: 0.9rem;
+        margin-top: 0.5rem;
+        font-family: var(--font-b);
+        font-size: 0.82rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        background: linear-gradient(135deg, var(--navy) 0%, var(--ink) 100%);
+        color: var(--white);
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(10, 17, 40, 0.25);
+        transition:
+          background 0.2s,
+          transform 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+      .btn-submit:hover {
+        background: var(--ink-soft);
+      }
+      .btn-submit:active {
+        transform: scale(0.98);
+      }
+      .btn-submit:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* Status message */
+      .status {
+        display: none;
+        font-size: 0.8rem;
+        padding: 0.7rem 1rem;
+        border-radius: 4px;
+        margin-top: 0.8rem;
+        align-items: center;
+        gap: 0.5rem;
+        border-left: 2px solid;
+      }
+      .status.show {
+        display: flex;
+        animation: rise 0.3s ease;
+      }
+      .status.err {
+        background: rgba(155, 35, 53, 0.06);
+        color: var(--red);
+        border-color: var(--red-light);
+      }
+      .status.ok {
+        background: rgba(45, 106, 79, 0.08);
+        color: var(--green);
+        border-color: var(--green-light);
+      }
+      .status.info {
+        background: rgba(184, 150, 62, 0.08);
+        color: var(--gold);
+        border-color: var(--gold);
+      }
+
+      /* Switch link */
+      .switch {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.83rem;
+        color: var(--ink-muted);
+      }
+      .switch a {
+        color: var(--gold);
+        text-decoration: none;
+        font-weight: 500;
+      }
+      .switch a:hover {
+        text-decoration: underline;
+      }
+
+      /* Divider */
+      .divider {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin: 1.2rem 0;
+        font-size: 0.72rem;
+        color: var(--ink-muted);
+      }
+      .divider::before,
+      .divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--line);
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes draw-line {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+
+      /* Spinner */
+      .spin {
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        display: none;
+      }
+      .spin.show {
+        display: block;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Password input wrapper */
+      .pwd-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+      .pwd-wrap input {
+        padding-right: 2.8rem !important;
+      }
+      .eye-btn {
+        position: absolute;
+        right: 0.75rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        color: var(--ink-muted);
+        transition: color 0.2s;
+        line-height: 1;
+      }
+      .eye-btn:hover {
+        color: var(--gold);
+      }
+      .eye-btn svg {
+        width: 18px;
+        height: 18px;
+        pointer-events: none;
+      }
+
+      /* Password strength bar */
+      .pwd-bar {
+        height: 3px;
+        border-radius: 2px;
+        background: var(--surface-2);
+        margin-top: 0.4rem;
+        overflow: hidden;
+      }
+      .pwd-fill {
+        height: 100%;
+        width: 0;
+        border-radius: 2px;
+        transition:
+          width 0.3s,
+          background 0.3s;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Hero panel: brand story + live market signature element -->
+    <section class="hero-panel">
+      <div class="hero-top">
+        <div class="hero-word">Stock<em>Wise</em></div>
+      </div>
+
+      <div>
+        <h1 class="hero-headline">
+          See the Nifty 50<br />
+          before the market <em>moves</em>.
+        </h1>
+        <p class="hero-sub">
+          Gradient-boosted-powered forecasting, AI stock picks and a live
+          paper-trading portfolio — built on real NSE data, explained in plain
+          English.
+        </p>
+
+        <svg
+          class="hero-chart"
+          viewBox="0 0 480 140"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#d4af60" stop-opacity="0.35" />
+              <stop offset="100%" stop-color="#d4af60" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <polyline
+            points="0,110 0,95 30,100 60,78 90,88 120,60 150,68 180,45 210,55 240,32 270,40 300,20 330,30 360,15 390,25 420,10 450,18 480,6 480,140 0,140"
+            fill="url(#chartFill)"
+            stroke="none"
+          />
+          <polyline
+            points="0,95 30,100 60,78 90,88 120,60 150,68 180,45 210,55 240,32 270,40 300,20 330,30 360,15 390,25 420,10 450,18 480,6"
+            fill="none"
+            stroke="#d4af60"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            style="
+              stroke-dasharray: 900;
+              stroke-dashoffset: 900;
+              animation: draw-line 2.4s ease-out forwards 0.3s;
+            "
+          />
+          <circle cx="480" cy="6" r="4" fill="#d4af60">
+            <animate
+              attributeName="opacity"
+              values="1;0.3;1"
+              dur="1.6s"
+              repeatCount="indefinite"
+            />
+          </circle>
+        </svg>
+
+        <div class="hero-feats">
+          <div class="feat">
+            <span class="feat-dot"
+              ><i class="fas fa-chart-line" style="display: none"></i>▲</span
+            >
+            6-month &amp; 5-year Gradient-boosted price forecasts
+          </div>
+          <div class="feat">
+            <span class="feat-dot">₹</span>
+            Live prices &amp; a risk-free paper portfolio
+          </div>
+          <div class="feat">
+            <span class="feat-dot">AI</span>
+            RAG assistant grounded in your own data
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-tickers">
+        <span>NIFTY 50 <b>24,812.35</b> <span class="up">▲0.64%</span></span>
+        <span>SENSEX <b>81,559.20</b> <span class="up">▲0.58%</span></span>
+        <span
+          >BANK NIFTY <b>52,930.10</b> <span class="down">▼0.12%</span></span
+        >
+      </div>
+    </section>
+
+    <!-- Auth column -->
+    <div class="auth-col">
+      <div class="wrap">
+        <!-- Logo -->
+        <div class="logo">
+          <div class="wordmark">Stock<em>Wise</em></div>
+          <div class="sub">AI Stock Intelligence</div>
+        </div>
+
+        <!-- Card -->
+        <div class="card">
+          <div class="rule"></div>
+
+          <!-- LOGIN FORM -->
+          <div
+            id="form-login"
+            style="{{ 'display:none' if page == 'register' else '' }}"
+          >
+            <div class="card-title">Welcome back</div>
+            <div class="card-sub">Sign in to your account</div>
+
+            <div class="field">
+              <label>Email address</label>
+              <input
+                type="email"
+                id="l-email"
+                placeholder="you@example.com"
+                autocomplete="email"
+              />
+            </div>
+            <div class="field">
+              <label>Password</label>
+              <div class="pwd-wrap">
+                <input
+                  type="password"
+                  id="l-password"
+                  placeholder="••••••••"
+                  autocomplete="current-password"
+                />
+                <button
+                  class="eye-btn"
+                  type="button"
+                  onclick="toggleEye('l-password', this)"
+                  aria-label="Show password"
+                >
+                  <svg
+                    id="eye-icon-l-password"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <button class="btn-submit" id="btn-login" onclick="doLogin()">
+              <div class="spin" id="spin-login"></div>
+              Sign In
+            </button>
+            <div class="status" id="login-status"></div>
+          </div>
+
+          <!-- REGISTER FORM -->
+          <div
+            id="form-register"
+            style="{{ 'display:none' if page == 'login' else '' }}"
+          >
+            <div class="card-title">Create account</div>
+            <div class="card-sub">Start tracking your portfolio</div>
+
+            <div class="row-2">
+              <div class="field">
+                <label>Username</label>
+                <input
+                  type="text"
+                  id="r-username"
+                  placeholder="johndoe"
+                  autocomplete="username"
+                />
+              </div>
+              <div class="field">
+                <label>Phone <span style="opacity: 0.5">(opt)</span></label>
+                <input type="tel" id="r-phone" placeholder="+91…" />
+              </div>
+            </div>
+            <div class="field">
+              <label>Email address</label>
+              <input
+                type="email"
+                id="r-email"
+                placeholder="you@example.com"
+                autocomplete="email"
+              />
+            </div>
+            <div class="field">
+              <label>Password</label>
+              <div class="pwd-wrap">
+                <input
+                  type="password"
+                  id="r-password"
+                  placeholder="Min. 6 characters"
+                  autocomplete="new-password"
+                  oninput="checkPwd(this.value)"
+                />
+                <button
+                  class="eye-btn"
+                  type="button"
+                  onclick="toggleEye('r-password', this)"
+                  aria-label="Show password"
+                >
+                  <svg
+                    id="eye-icon-r-password"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </button>
+              </div>
+              <div class="pwd-bar">
+                <div class="pwd-fill" id="pwd-fill"></div>
+              </div>
+            </div>
+
+            <button class="btn-submit" id="btn-register" onclick="doRegister()">
+              <div class="spin" id="spin-register"></div>
+              Create Account
+            </button>
+            <div class="status" id="register-status"></div>
+          </div>
+
+          <!-- Switch -->
+          <div class="divider">or</div>
+          <div class="switch" id="switch-text">
+            {% if page == 'login' %} Don't have an account?
+            <a href="#" onclick="showRegister()">Create one</a> {% else %}
+            Already have an account?
+            <a href="#" onclick="showLogin()">Sign in</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function toggleEye(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById("eye-icon-" + inputId);
+        const isHidden = input.type === "password";
+        input.type = isHidden ? "text" : "password";
+        btn.setAttribute(
+          "aria-label",
+          isHidden ? "Hide password" : "Show password",
+        );
+        // Switch between eye and eye-off SVG paths
+        icon.innerHTML = isHidden
+          ? `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+             <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+             <line x1="1" y1="1" x2="23" y2="23"/>`
+          : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+             <circle cx="12" cy="12" r="3"/>`;
+      }
+
+      function showStatus(id, msg, type) {
+        const el = document.getElementById(id);
+        el.innerHTML = msg;
+        el.className = "status show " + type;
+        if (type !== "info") setTimeout(() => (el.className = "status"), 6000);
+      }
+
+      function setLoading(btnId, spinId, loading) {
+        document.getElementById(btnId).disabled = loading;
+        document.getElementById(spinId).classList.toggle("show", loading);
+      }
+
+      function showLogin() {
+        document.getElementById("form-login").style.display = "block";
+        document.getElementById("form-register").style.display = "none";
+        document.getElementById("switch-text").innerHTML =
+          "Don't have an account? <a href='#' onclick='showRegister()'>Create one</a>";
+      }
+
+      function showRegister() {
+        document.getElementById("form-login").style.display = "none";
+        document.getElementById("form-register").style.display = "block";
+        document.getElementById("switch-text").innerHTML =
+          "Already have an account? <a href='#' onclick='showLogin()'>Sign in</a>";
+      }
+
+      function checkPwd(val) {
+        const fill = document.getElementById("pwd-fill");
+        const len = val.length;
+        let pct = 0,
+          color = "#e63950";
+        if (len >= 6) {
+          pct = 40;
+          color = "#e63950";
+        }
+        if (len >= 8) {
+          pct = 65;
+          color = "#b8963e";
+        }
+        if (len >= 10 && /[A-Z]/.test(val) && /[0-9]/.test(val)) {
+          pct = 100;
+          color = "#52b788";
+        }
+        fill.style.width = pct + "%";
+        fill.style.background = color;
+      }
+
+      async function doLogin() {
+        const email = document.getElementById("l-email").value.trim();
+        const password = document.getElementById("l-password").value;
+        if (!email || !password) {
+          showStatus("login-status", "Enter email and password.", "err");
+          return;
+        }
+
+        setLoading("btn-login", "spin-login", true);
+        showStatus("login-status", "Signing in…", "info");
+
+        try {
+          const res = await fetch("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+          const d = await res.json();
+          if (res.ok) {
+            showStatus("login-status", `Welcome back, ${d.username}!`, "ok");
+            setTimeout(() => (window.location.href = "/"), 800);
+          } else {
+            showStatus("login-status", d.error || "Login failed.", "err");
+          }
+        } catch {
+          showStatus("login-status", "Network error. Try again.", "err");
+        } finally {
+          setLoading("btn-login", "spin-login", false);
+        }
+      }
+
+      async function doRegister() {
+        const username = document.getElementById("r-username").value.trim();
+        const email = document.getElementById("r-email").value.trim();
+        const password = document.getElementById("r-password").value;
+        const phone = document.getElementById("r-phone").value.trim();
+
+        if (!username || !email || !password) {
+          showStatus(
+            "register-status",
+            "Username, email and password are required.",
+            "err",
+          );
+          return;
+        }
+        if (password.length < 6) {
+          showStatus(
+            "register-status",
+            "Password must be at least 6 characters.",
+            "err",
+          );
+          return;
+        }
+
+        setLoading("btn-register", "spin-register", true);
+        showStatus("register-status", "Creating account…", "info");
+
+        try {
+          const res = await fetch("/api/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, email, password, phone }),
+          });
+          const d = await res.json();
+          if (res.ok) {
+            showStatus(
+              "register-status",
+              `Account created! Redirecting…`,
+              "ok",
+            );
+            setTimeout(() => (window.location.href = "/"), 900);
+          } else {
+            showStatus(
+              "register-status",
+              d.error || "Registration failed.",
+              "err",
+            );
+          }
+        } catch {
+          showStatus("register-status", "Network error. Try again.", "err");
+        } finally {
+          setLoading("btn-register", "spin-register", false);
+        }
+      }
+
+      // Enter key support
+      document.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter") return;
+        if (document.getElementById("form-login").style.display !== "none")
+          doLogin();
+        else doRegister();
+      });
+    </script>
+  </body>
+</html>
