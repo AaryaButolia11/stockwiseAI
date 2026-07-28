@@ -34,9 +34,4 @@ langchain-community
 langchain-text-splitters
 
 # Retrieval / scraping
-faiss-cpu
-sentence-transformers
 beautifulsoup4
-
-# Streamlit news-research tool
-streamlit
