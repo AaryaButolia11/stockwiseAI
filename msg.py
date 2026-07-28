@@ -13,6 +13,52 @@ NEWS_API_KEY           = os.getenv("NEWS_API_KEY", "")
 
 client = Client(account_sid, auth_token)
 
+# ── Groq (LangChain) — NLP-friendly alert text ───────────────────────────────
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+
+_groq_llm = None
+if GROQ_API_KEY:
+    from langchain_groq import ChatGroq
+    _groq_llm = ChatGroq(
+        model="llama-3.3-70b-versatile",
+        temperature=0.4,
+        max_tokens=120,
+    )
+
+
+def generate_nlp_message(display_sym: str, company_name: str, diff_pct: float,
+                          price: float, article_title: str = "", article_desc: str = "") -> str:
+    """
+    Turns raw stock-change + optional news data into a short, natural-language
+    alert. Falls back to the plain templated message if Groq isn't configured
+    or the call fails.
+    """
+    up_down = "up" if diff_pct > 0 else "down"
+    fallback = (f"📊 {display_sym} ({company_name}) is {up_down} {abs(diff_pct)}% "
+                f"at ₹{price:.2f}." + (f" News: {article_title}" if article_title else ""))
+
+    if not _groq_llm:
+        return fallback
+
+    try:
+        prompt = (
+            "Write a single short SMS/WhatsApp alert (max 300 characters, no markdown, "
+            "1-2 sentences, friendly but factual tone, may use at most one emoji) for a "
+            "stock price-movement notification.\n\n"
+            f"Stock: {company_name} ({display_sym})\n"
+            f"Price change: {diff_pct}% ({up_down})\n"
+            f"Current price: ₹{price:.2f}\n"
+            f"Related news headline: {article_title or 'none'}\n"
+            f"News summary: {article_desc or 'none'}\n\n"
+            "Return only the message text, nothing else."
+        )
+        resp = _groq_llm.invoke(prompt)
+        text = (resp.content or "").strip()
+        return text if text else fallback
+    except Exception as e:
+        print(f"[Groq] Message generation failed: {e}")
+        return fallback
+
 # ── TwelveData (optional — only used if key is set and symbol is supported) ──
 
 TWELVE_DATA_KEY = os.getenv("TWELVE_DATA_KEY", "")
@@ -160,19 +206,18 @@ def send_stock_news_alert(stock_symbol: str, company_name: str,
                 print(f"[News] Failed to fetch news for {company_name}: {e}")
 
         if not articles:
-            msg = (f"📊 StockWise Alert\n"
-                   f"{display_sym} ({company_name})\n"
-                   f"{up_down} {diff_pct}% price change\n"
-                   f"Current: ₹{yesterday:.2f}")
+            msg = generate_nlp_message(display_sym, company_name, diff_pct, yesterday)
             send_alert_sms(phone_number, msg)
             send_alert_whatsapp(phone_number, msg)
             return True
 
         sent = False
         for article in articles:
-            msg = (f"📊 {display_sym}: {up_down}{diff_pct}%\n"
-                   f"📰 {article.get('title', '')}\n"
-                   f"💬 {article.get('description', '')[:100]}")
+            msg = generate_nlp_message(
+                display_sym, company_name, diff_pct, yesterday,
+                article_title=article.get("title", ""),
+                article_desc=article.get("description", "") or "",
+            )
             if send_alert_sms(phone_number, msg):
                 sent = True
             send_alert_whatsapp(phone_number, msg)
